@@ -22,7 +22,7 @@ jobs:
   docker-compose-ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build the stack
         run: |
           DOCKER_BUILDKIT=1 docker compose up --quiet-pull --no-color --remove-orphans --exit-code-from ci
