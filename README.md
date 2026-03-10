@@ -58,10 +58,10 @@ The web frontend proxies API requests through nginx (`/api` -> `API_URI`). Cross
 
 ### Behaviour
 
-| `CORS_ORIGIN` value               | `Access-Control-Allow-Origin` emitted | Effect                                                  |
-| --------------------------------- | ------------------------------------- | ------------------------------------------------------- |
-| _(empty, default)_                | _(no header)_                         | Most restrictive — browser blocks cross-origin requests |
-| `https://myapp.azurewebsites.net` | `https://myapp.azurewebsites.net`     | Only that exact origin is allowed                       |
+| `CORS_ORIGIN` value               | CORS headers emitted                                                    | Effect                                                  |
+| --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| _(empty, default)_                | _(none)_                                                                | Most restrictive — browser blocks cross-origin requests |
+| `https://myapp.azurewebsites.net` | `Access-Control-Allow-Origin: https://myapp.azurewebsites.net` (+ Methods & Headers) | Only that exact origin is allowed          |
 
 ### Setting a restricted origin via Terraform
 
