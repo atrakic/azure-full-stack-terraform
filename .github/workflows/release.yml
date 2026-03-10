@@ -34,6 +34,7 @@ jobs:
               --exclude='.terraform' \
               --exclude='*.tfstate' \
               --exclude='*.tfstate.backup' \
+              --exclude="stack-${{ github.ref_name }}.tar.gz" \
               -czf stack-${{ github.ref_name }}.tar.gz .
 
       - name: Create GitHub Release
