@@ -11,6 +11,17 @@ ARG REFRESH_INTERVAL=5000
 ENV REFRESH_INTERVAL ${REFRESH_INTERVAL}
 
 USER root
+
+# create robots and humans files
+COPY <<robots.txt <<humans.txt /usr/share/nginx/html/
+User-agent: *
+Disallow:
+robots.txt
+aTrakic (Full Stack developer) 
+https://atrakic.github.io/
+@atrakic
+humans.txt
+
 COPY <<EOF index.html
 <!DOCTYPE html>
 <html lang="en">
