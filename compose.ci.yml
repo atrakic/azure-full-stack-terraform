@@ -18,7 +18,7 @@ services:
           bash -x /tests/test.sh
         fi
     environment:
-      URI: http://web/api
+      URI: http://web:8080/api
     volumes:
       - ./tests:/tests
     depends_on:

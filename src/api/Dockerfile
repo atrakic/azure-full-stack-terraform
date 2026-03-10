@@ -20,7 +20,7 @@ import (
 // @title System Info API
 // @version 1.0
 // @description A simple API to get system information
-// @host localhost:8080
+// @host localhost:3000
 // @BasePath /
 type SystemInfo struct {
     Hostname        string    \`json:"hostname"\`
@@ -76,9 +76,9 @@ func main() {
         httpSwagger.URL("/docs/swagger.json"),
     ))
 
-    log.Println("System Info Server starting on :8080")
-    log.Println("Swagger documentation available at: http://localhost:8080/swagger/")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Println("System Info Server starting on :3000")
+    log.Println("Swagger documentation available at: http://localhost:3000/swagger/")
+    log.Fatal(http.ListenAndServe(":3000", nil))
 }
 EOF
 
@@ -101,5 +101,5 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /src/sysinfo .
 COPY --from=builder /src/docs ./docs
 USER nobody
-EXPOSE 8080
+EXPOSE 3000
 ENTRYPOINT ["./sysinfo"]

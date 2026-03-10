@@ -73,7 +73,7 @@ module "api" {
     docker_registry_url = "https://${module.base.azurerm_container_registry_login_server}"
   }
   app_settings = {
-    "WEBSITES_PORT"                         = "8080"
+    "WEBSITES_PORT"                         = "3000"
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = module.base.application_insights_connection_string
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = module.base.application_insights_instrumentation_key
   }
@@ -98,10 +98,10 @@ module "web" {
     docker_registry_url = "https://${module.base.azurerm_container_registry_login_server}"
   }
   app_settings = {
-    "WEBSITES_PORT"                         = "80"
+    "WEBSITES_PORT"                         = "8080"
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = module.base.application_insights_connection_string
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = module.base.application_insights_instrumentation_key
-    "API_URI"                               = "${module.api.default_hostname}:8080"
+    "API_URI"                               = "${module.api.default_hostname}:3000"
   }
   tags = merge({ app = module.naming.function_app.name_unique }, local.tags)
 }

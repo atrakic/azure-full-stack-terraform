@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-URI=${URI:-http://localhost:8000}
+URI=${URI:-http://localhost:8000/api}
 
 declare -a opts
 opts=(
