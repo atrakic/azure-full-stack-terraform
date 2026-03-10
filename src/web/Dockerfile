@@ -19,58 +19,18 @@ COPY <<EOF index.html
     <title>System Information Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-            background-color: #f4f4f4;
-        }
-        .system-info {
-            background-color: white;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .json-row {
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .loading {
-            color: #666;
-            text-align: center;
-        }
-        .info-row {
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-        }
         .info-row.odd  { background-color: #e8f4fd; }
         .info-row.even { background-color: #ffffff; }
-        .info-key {
-            font-weight: 600;
-            color: #1a202c;
-            text-transform: capitalize;
-        }
-        .info-value {
-            color: #0a6640;
-            font-family: monospace;
-        }
+        .info-value    { color: #0a6640; font-family: monospace; }
     </style>
 </head>
-<body>
-  <main>
-    <h1>🖥️ System Information Dashboard</h1>
-    <div id="systemInfo" class="system-info">
-        <p class="loading">Fetching system information...</p>
+<body class="bg-light">
+  <main class="container py-4" style="max-width:800px">
+    <h1 class="text-center text-dark mb-4">🖥️ System Information Dashboard</h1>
+    <div id="systemInfo" class="card shadow-sm">
+        <div class="card-body">
+            <p class="text-muted text-center">Fetching system information...</p>
+        </div>
     </div>
   </main>
   <script src="sysinfo.js"></script>
@@ -94,8 +54,8 @@ function continuousFetch(url) {
                         const parity = i % 2 === 0 ? 'odd' : 'even';
                         const label = key.replace(/_/g, ' ');
                         const value = formatValue(key, val);
-                        return '<div class="info-row ' + parity + '">'
-                            + '<span class="info-key">' + label + '</span>'
+                        return '<div class="info-row ' + parity + ' d-flex justify-content-between px-3 py-2 rounded mb-1">'
+                            + '<span class="font-weight-bold text-dark text-capitalize">' + label + '</span>'
                             + '<span class="info-value">' + value + '</span>'
                             + '</div>';
                     }).join('');
