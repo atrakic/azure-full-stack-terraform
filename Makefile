@@ -39,6 +39,18 @@ healthcheck:
 test:
 	[ -f ./test/test.sh ] && ./test/test.sh || true
 
+release: ## Release (eg. V=0.0.1)
+	 @[ "$(V)" ] && [ ! -z "$(GITHUB_TOKEN)" ] \
+		 && read -p "Press enter to confirm and push tag v$(V) to origin, <Ctrl+C> to abort ..." \
+		 && git tag $(V) -m "release: $(V)" \
+		 && git push origin $(V) -f \
+		 && git fetch --tags --force --all -p \
+		 && curl -H "Authorization: token $(GITHUB_TOKEN)" \
+				-X POST	\
+				-H "Accept: application/vnd.github.v3+json"	\
+				https://api.github.com/repos/atrakic/$(shell basename $$PWD)/releases \
+				-d "{\"tag_name\":\"$(V)\",\"generate_release_notes\":true}"
+
 clean:
 	docker-compose down --remove-orphans -v --rmi local
 	rm -rf .terraform *.tfstate
