@@ -39,9 +39,9 @@ healthcheck:
 test:
 	[ -f ./test/test.sh ] && ./test/test.sh || true
 
-release: ## Release (eg. V=0.0.1)
+release: ## Release (eg. V=v0.0.1)
 	 @[ "$(V)" ] && [ ! -z "$(GITHUB_TOKEN)" ] \
-		 && read -p "Press enter to confirm and push tag v$(V) to origin, <Ctrl+C> to abort ..." \
+		 && read -p "Press enter to confirm and push tag $(V) to origin, <Ctrl+C> to abort ..." \
 		 && git tag $(V) -m "release: $(V)" \
 		 && git push origin $(V) -f \
 		 && git fetch --tags --force --all -p \
