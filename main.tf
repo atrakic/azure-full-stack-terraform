@@ -26,7 +26,9 @@ provider "azurerm" {
 
 # variables
 variable "location" {
-  default = "northeurope"
+  description = "The Azure region where all resources will be deployed."
+  type        = string
+  default     = "northeurope"
 }
 
 locals {
@@ -110,6 +112,7 @@ output "location" {
 }
 
 output "api" {
+  description = "API service hostname and deployment details."
   value = {
     tags             = local.tags
     default_hostname = module.api.default_hostname
@@ -117,6 +120,7 @@ output "api" {
 }
 
 output "web" {
+  description = "Web frontend hostname and deployment details."
   value = {
     tags             = local.tags
     default_hostname = module.web.default_hostname

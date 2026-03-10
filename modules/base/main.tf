@@ -1,10 +1,16 @@
 variable "tags" {
-  type    = map(any)
-  default = {}
+  description = "A map of tags to assign to the resources."
+  type        = map(any)
+  default     = {}
 }
 
-variable "location" {}
-variable "name" {}
+variable "location" {
+  description = "The Azure region where resources will be deployed."
+}
+
+variable "name" {
+  description = "The base name used for naming Azure resources."
+}
 
 locals {
   azurerm_resource_group_name = "${var.name}-rg"
@@ -55,39 +61,48 @@ resource "azurerm_application_insights" "this" {
 }
 
 output "azurerm_resource_group_id" {
-  value = azurerm_resource_group.this.id
+  description = "The ID of the Azure Resource Group."
+  value       = azurerm_resource_group.this.id
 }
 
 output "azurerm_resource_group_name" {
-  value = local.azurerm_resource_group_name
+  description = "The name of the Azure Resource Group."
+  value       = local.azurerm_resource_group_name
 }
 
 output "azurerm_container_registry_id" {
-  value = azurerm_container_registry.this.id
+  description = "The ID of the Azure Container Registry."
+  value       = azurerm_container_registry.this.id
 }
 
 output "azurerm_container_registry_login_server" {
-  value = azurerm_container_registry.this.login_server
+  description = "The login server URL of the Azure Container Registry."
+  value       = azurerm_container_registry.this.login_server
 }
 
 output "azurerm_container_registry_admin_username" {
-  sensitive = true
-  value     = azurerm_container_registry.this.admin_username
+  description = "The admin username of the Azure Container Registry."
+  sensitive   = true
+  value       = azurerm_container_registry.this.admin_username
 }
 
 output "azurerm_container_registry_admin_password" {
-  sensitive = true
-  value     = azurerm_container_registry.this.admin_password
+  description = "The admin password of the Azure Container Registry."
+  sensitive   = true
+  value       = azurerm_container_registry.this.admin_password
 }
 
 output "azurerm_service_plan_id" {
-  value = azurerm_service_plan.this.id
+  description = "The ID of the Azure App Service Plan."
+  value       = azurerm_service_plan.this.id
 }
 
 output "application_insights_connection_string" {
-  value = azurerm_application_insights.this.connection_string
+  description = "The connection string for Application Insights."
+  value       = azurerm_application_insights.this.connection_string
 }
 
 output "application_insights_instrumentation_key" {
-  value = azurerm_application_insights.this.instrumentation_key
+  description = "The instrumentation key for Application Insights."
+  value       = azurerm_application_insights.this.instrumentation_key
 }

@@ -1,18 +1,42 @@
-variable "location" {}
-variable "name" {}
-variable "resource_group_id" {}
-variable "resource_group_name" {}
-variable "image_context" {}
-variable "docker_image_name" {}
-variable "service_plan_id" {}
-variable "acr_login_server" {}
-variable "acr_admin_username" {}
-variable "acr_admin_password" {}
-variable "dockerfile" { default = "Dockerfile" }
+variable "location" {
+  description = "The Azure region where resources will be deployed."
+}
+variable "name" {
+  description = "The name of the web application."
+}
+variable "resource_group_id" {
+  description = "The ID of the Azure Resource Group."
+}
+variable "resource_group_name" {
+  description = "The name of the Azure Resource Group."
+}
+variable "image_context" {
+  description = "The build context path for the Docker image."
+}
+variable "docker_image_name" {
+  description = "The fully qualified Docker image name including registry and tag."
+}
+variable "service_plan_id" {
+  description = "The ID of the Azure App Service Plan."
+}
+variable "acr_login_server" {
+  description = "The login server URL of the Azure Container Registry."
+}
+variable "acr_admin_username" {
+  description = "The admin username for the Azure Container Registry."
+}
+variable "acr_admin_password" {
+  description = "The admin password for the Azure Container Registry."
+}
+variable "dockerfile" {
+  description = "Path to the Dockerfile used to build the Docker image."
+  default     = "Dockerfile"
+}
 
 variable "app_settings" {
-  type    = map(string)
-  default = {}
+  description = "A map of application settings for the web app."
+  type        = map(string)
+  default     = {}
 }
 
 variable "site_config" {
@@ -283,8 +307,9 @@ variable "storage_shares_to_mount" {
 }
 
 variable "tags" {
-  type    = map(any)
-  default = {}
+  description = "A map of tags to assign to the resources."
+  type        = map(any)
+  default     = {}
 }
 
 resource "docker_registry_image" "this" {
@@ -652,5 +677,6 @@ resource "azurerm_role_assignment" "this" {
 }
 
 output "default_hostname" {
-  value = azurerm_linux_web_app.this.default_hostname
+  description = "The default hostname of the deployed Azure Linux Web App."
+  value       = azurerm_linux_web_app.this.default_hostname
 }

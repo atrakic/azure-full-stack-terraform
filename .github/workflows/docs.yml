@@ -1,0 +1,55 @@
+name: Terraform Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.tf'
+      - '.terraform-docs.yml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - '**.tf'
+      - '.terraform-docs.yml'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Render terraform docs for root module
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: "true"
+          git-commit-message: "docs: auto-update terraform documentation"
+
+      - name: Render terraform docs for base module
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: modules/base
+          output-file: README.md
+          output-method: inject
+          git-push: "true"
+          git-commit-message: "docs: auto-update terraform documentation for base module"
+
+      - name: Render terraform docs for app module
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: modules/app
+          output-file: README.md
+          output-method: inject
+          git-push: "true"
+          git-commit-message: "docs: auto-update terraform documentation for app module"
