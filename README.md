@@ -54,7 +54,7 @@ No resources.
 
 ## CORS Configuration
 
-The web frontend proxies API requests through nginx (`/api` → `API_URI`). Cross-Origin Resource Sharing (CORS) headers are baked into the nginx config at **Docker build time** via the `CORS_ORIGIN` build argument.
+The web frontend proxies API requests through nginx (`/api` -> `API_URI`). Cross-Origin Resource Sharing (CORS) headers are baked into the nginx config at **Docker build time** via the `CORS_ORIGIN` build argument.
 
 ### Behaviour
 

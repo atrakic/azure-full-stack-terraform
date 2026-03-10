@@ -1,28 +1,26 @@
-# custom (e.g. 2s)
-# docker build --build-arg REFRESH_INTERVAL=2000 --build-arg API_URI=http://api:3000 --build-arg CORS_ORIGIN=https://myfrontend.example.com .
+# docker build --build-arg API_HOST=api:3000 --build-arg CORS_ORIGIN=https://myapp.example.com .
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 WORKDIR /usr/share/nginx/html
 
-ARG API_URI=http://api:3000
-ENV API_URI ${API_URI}
-
+ARG API_HOST=api:3000
 ARG REFRESH_INTERVAL=5000
-ENV REFRESH_INTERVAL ${REFRESH_INTERVAL}
-
 ARG CORS_ORIGIN
-ENV CORS_ORIGIN ${CORS_ORIGIN}
+
+ENV API_HOST=${API_HOST} \
+    REFRESH_INTERVAL=${REFRESH_INTERVAL} \
+    CORS_ORIGIN=${CORS_ORIGIN}
 
 USER root
 
-COPY <<robots.txt <<humans.txt /usr/share/nginx/html/
+COPY <<robots.txt <<developer.txt /usr/share/nginx/html/
 User-agent: *
 Disallow:
 robots.txt
-aTrakic (Full Stack developer) 
+aTrakic (Full Stack developer)
 https://atrakic.github.io/
 @atrakic
-humans.txt
+developer.txt
 
 COPY <<EOF index.html
 <!DOCTYPE html>
@@ -87,14 +85,17 @@ function continuousFetch(url) {
     doFetch();
     setInterval(doFetch, ${REFRESH_INTERVAL});
 }
-continuousFetch('/api');
+continuousFetch('/api/v1');
 EOF
 
 # Configure Nginx to serve the static file
 RUN <<EOF cat > /etc/nginx/conf.d/default.conf
+upstream api_upstream {
+    server ${API_HOST:-api:3000};
+}
 server {
     listen 8080;
-    server_name ${NGINX_SERVER_NAME:-localhost};
+    server_name _;
 
     location / {
         root /usr/share/nginx/html;
@@ -102,20 +103,28 @@ server {
         try_files \$uri \$uri/ =404;
     }
 
-    # Enable CORS for API calls
-    location /api {
-        rewrite ^/api(.*) /$1 break;
-        proxy_pass ${API_URI};
-        # required when proxying to Azure App Service HTTPS hostnames, which need SNI to present the correct certificate.
-        proxy_ssl_server_name on;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
+    # Proxy /api/* to Go backend, stripping the /api prefix
+    location /api/ {
+        rewrite ^/api/(.*) /\$1 break;
+        proxy_pass         http://api_upstream;
 
-        # CORS headers — set CORS_ORIGIN at build time to restrict to a specific origin.
-        # If unset, no Access-Control-Allow-Origin header is emitted (most restrictive).
-        add_header 'Access-Control-Allow-Origin' '${CORS_ORIGIN}' always;
+        # Required when proxying to Azure App Service HTTPS hostnames,
+        # which need SNI to present the correct certificate.
+        proxy_ssl_server_name on;
+
+        proxy_set_header   Host \$host;
+        proxy_set_header   X-Real-IP \$remote_addr;
+        proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto \$scheme;
+        add_header 'Access-Control-Allow-Origin'  '${CORS_ORIGIN}' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+    }
+
+    # Swagger UI fetches /docs/swagger.json as an absolute path from the browser
+    location /docs/ {
+        proxy_pass http://api_upstream;
+        proxy_set_header Host \$host;
     }
 }
 EOF
