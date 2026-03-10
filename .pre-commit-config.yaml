@@ -1,13 +1,23 @@
-# See http://pre-commit.com for more information
-# See http://pre-commit.com/hooks.html for more hooks
+# Docs: https://pre-commit.com/
+#
+# Quickstart:
+# $ pip3 install pre-commit
+# $ pre-commit install
+# < edit json, yaml, (ba)sh, add trailing whitespace etc >
+# pre-commit run -a
+# $ git add .
+# $ git commit
+#
+# If the pre-commit hook is broken, it can be removed by deleting the file
+# at .git/hooks/pre-commi
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.74.1
+    rev: v1.105.0
     hooks:
       - id: terraform_fmt
       - id: terraform_docs
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v6.0.0
     hooks:
       - id: check-merge-conflict
       - id: trailing-whitespace
