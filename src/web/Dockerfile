@@ -116,9 +116,7 @@ server {
         proxy_set_header   X-Real-IP \$remote_addr;
         proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto \$scheme;
-        add_header 'Access-Control-Allow-Origin'  '${CORS_ORIGIN}' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+$([ -n "${CORS_ORIGIN}" ] && printf "        add_header 'Access-Control-Allow-Origin'  '${CORS_ORIGIN}' always;\n        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;\n        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;")
     }
 
     # Swagger UI fetches /docs/swagger.json as an absolute path from the browser
