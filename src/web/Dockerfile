@@ -1,8 +1,14 @@
+# custom (e.g. 2s)
+# docker build --build-arg REFRESH_INTERVAL=2000 --build-arg API_URI=http://api:8080 .
+
 FROM nginx:1.27-alpine
 WORKDIR /usr/share/nginx/html
 
 ARG API_URI=http://api:8080
 ENV API_URI ${API_URI}
+
+ARG REFRESH_INTERVAL=5000
+ENV REFRESH_INTERVAL ${REFRESH_INTERVAL}
 
 COPY <<EOF index.html
 <!DOCTYPE html>
@@ -40,6 +46,24 @@ COPY <<EOF index.html
             color: #666;
             text-align: center;
         }
+        .info-row {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .info-row.odd  { background-color: #e8f4fd; }
+        .info-row.even { background-color: #ffffff; }
+        .info-key {
+            font-weight: 600;
+            color: #1a202c;
+            text-transform: capitalize;
+        }
+        .info-value {
+            color: #0a6640;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -54,26 +78,37 @@ COPY <<EOF index.html
 </html>
 EOF
 
-COPY <<EOF sysinfo.js
+RUN <<EOF cat > sysinfo.js
+function formatValue(key, val) {
+    if (key === 'timestamp') return new Date(val).toLocaleString();
+    if (typeof val === 'number') return val % 1 !== 0 ? val.toFixed(2) : val;
+    return val;
+}
 function continuousFetch(url) {
-    setInterval(() => {
+    function doFetch() {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                // Create an HTML representation of key-value pairs
                 const htmlContent = Object.entries(data)
-                .map(([key, value]) => `
-                    <div class="json-row"><strong>\${key}:</strong> \${JSON.stringify(value)}</div>
-                `).join('');
+                    .map(([key, val], i) => {
+                        const parity = i % 2 === 0 ? 'odd' : 'even';
+                        const label = key.replace(/_/g, ' ');
+                        const value = formatValue(key, val);
+                        return '<div class="info-row ' + parity + '">'
+                            + '<span class="info-key">' + label + '</span>'
+                            + '<span class="info-value">' + value + '</span>'
+                            + '</div>';
+                    }).join('');
                 document.querySelector("#systemInfo").innerHTML = htmlContent;
-                console.log(data);
             })
             .catch(error => {
                 const infoDiv = document.getElementById('systemInfo');
-                infoDiv.innerHTML = `<p style="color: red;">Error loading system information: \${error.message}</p>`;
+                infoDiv.innerHTML = '<p style="color:red;">Error loading system information: ' + error.message + '</p>';
                 console.error('Fetch error:', error);
             });
-    }, 5000); // Fetch every 5 seconds
+    }
+    doFetch();
+    setInterval(doFetch, ${REFRESH_INTERVAL});
 }
 continuousFetch('/api');
 EOF
