@@ -12,6 +12,7 @@ import (
     "net/http"
     "runtime"
     "os"
+    "strings"
     "time"
 
     httpSwagger "github.com/swaggo/http-swagger"
@@ -30,7 +31,20 @@ type SystemInfo struct {
     CPUCores        int       \`json:"cpu_cores"\`
     MemoryAllocated float64   \`json:"memory_mb"\`
     Timestamp       time.Time \`json:"timestamp"\`
+    Env             map[string]string \`json:"env,omitempty"\`
 }
+
+func getEnv() map[string]string {
+    env := make(map[string]string)
+    for _, e := range os.Environ() {
+        pair := strings.SplitN(e, "=", 2)
+        if len(pair) == 2 {
+            env[pair[0]] = pair[1]
+        }
+    }
+    return env
+}
+
 
 func getSystemInfo() SystemInfo {
     hostname, _ := os.Hostname()
@@ -46,6 +60,7 @@ func getSystemInfo() SystemInfo {
         CPUCores:        runtime.NumCPU(),
         MemoryAllocated: float64(m.Alloc) / 1024 / 1024,
         Timestamp:       time.Now(),
+        Env:             getEnv(),
     }
 }
 

@@ -31,6 +31,12 @@ variable "location" {
   default     = "northeurope"
 }
 
+variable "cors_origin" {
+  description = "Allowed CORS origin for the web frontend (e.g. https://myapp.azurewebsites.net). Leave empty to emit no Access-Control-Allow-Origin header (most restrictive)."
+  type        = string
+  default     = ""
+}
+
 locals {
   name = module.naming.resource_group.name_unique
   tags = merge(
@@ -63,7 +69,7 @@ module "api" {
   resource_group_id   = module.base.azurerm_resource_group_id
   resource_group_name = module.base.azurerm_resource_group_name
   image_context       = path.module
-  docker_image_name   = "${local.name}.azurecr.io/api:latest"
+  docker_image_name   = "${local.name}.azurecr.io/${local.name}-api:latest"
   dockerfile          = "${path.module}/api/Dockerfile"
   service_plan_id     = module.base.azurerm_service_plan_id
   acr_login_server    = module.base.azurerm_container_registry_login_server
@@ -88,7 +94,7 @@ module "web" {
   resource_group_id   = module.base.azurerm_resource_group_id
   resource_group_name = module.base.azurerm_resource_group_name
   image_context       = path.module
-  docker_image_name   = "${local.name}.azurecr.io/web:latest"
+  docker_image_name   = "${local.name}.azurecr.io/${local.name}-web:latest"
   dockerfile          = "${path.module}/web/Dockerfile"
   service_plan_id     = module.base.azurerm_service_plan_id
   acr_login_server    = module.base.azurerm_container_registry_login_server
@@ -101,7 +107,11 @@ module "web" {
     "WEBSITES_PORT"                         = "8080"
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = module.base.application_insights_connection_string
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = module.base.application_insights_instrumentation_key
-    "API_URI"                               = "${module.api.default_hostname}:3000"
+    "API_URI"                               = "https://${module.api.default_hostname}"
+  }
+  build_args = {
+    API_URI     = "https://${module.api.default_hostname}"
+    CORS_ORIGIN = var.cors_origin
   }
   tags = merge({ app = module.naming.function_app.name_unique }, local.tags)
 }

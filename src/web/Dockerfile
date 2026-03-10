@@ -1,5 +1,5 @@
 # custom (e.g. 2s)
-# docker build --build-arg REFRESH_INTERVAL=2000 --build-arg API_URI=http://api:3000 .
+# docker build --build-arg REFRESH_INTERVAL=2000 --build-arg API_URI=http://api:3000 --build-arg CORS_ORIGIN=https://myfrontend.example.com .
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 WORKDIR /usr/share/nginx/html
@@ -10,9 +10,11 @@ ENV API_URI ${API_URI}
 ARG REFRESH_INTERVAL=5000
 ENV REFRESH_INTERVAL ${REFRESH_INTERVAL}
 
+ARG CORS_ORIGIN
+ENV CORS_ORIGIN ${CORS_ORIGIN}
+
 USER root
 
-# create robots and humans files
 COPY <<robots.txt <<humans.txt /usr/share/nginx/html/
 User-agent: *
 Disallow:
@@ -53,6 +55,9 @@ EOF
 RUN <<EOF cat > sysinfo.js
 function formatValue(key, val) {
     if (key === 'timestamp') return new Date(val).toLocaleString();
+    if (val !== null && typeof val === 'object') {
+        return '<pre style="margin:0;font-size:0.8em">' + JSON.stringify(val, null, 2) + '</pre>';
+    }
     if (typeof val === 'number') return val % 1 !== 0 ? val.toFixed(2) : val;
     return val;
 }
@@ -99,14 +104,18 @@ server {
 
     # Enable CORS for API calls
     location /api {
+        rewrite ^/api(.*) /$1 break;
         proxy_pass ${API_URI};
+        # required when proxying to Azure App Service HTTPS hostnames, which need SNI to present the correct certificate.
+        proxy_ssl_server_name on;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
 
-        # CORS headers
-        add_header 'Access-Control-Allow-Origin' '*';
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+        # CORS headers — set CORS_ORIGIN at build time to restrict to a specific origin.
+        # If unset, no Access-Control-Allow-Origin header is emitted (most restrictive).
+        add_header 'Access-Control-Allow-Origin' '${CORS_ORIGIN}' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
     }
 }
 EOF
@@ -114,4 +123,5 @@ EOF
 HEALTHCHECK --interval=10s --timeout=10s --start-period=5s --retries=3 \
     CMD wget -qO- http://localhost:8080/api || exit 1
 
+EXPOSE 8080
 USER nginx
