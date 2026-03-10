@@ -2,8 +2,6 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /src
 
-ADD go.mod go.sum ./
-
 # Use heredoc to create a simple system info webserver
 RUN <<EOF cat > main.go
 package main
@@ -84,8 +82,8 @@ func main() {
 }
 EOF
 
-# Install dependencies first
-RUN go mod download
+# Initialize Go module and download dependencies
+RUN go mod init atrakic/api && go mod tidy
 
 # Install swaggo CLI to generate swagger docs
 RUN go install github.com/swaggo/swag/cmd/swag@latest
