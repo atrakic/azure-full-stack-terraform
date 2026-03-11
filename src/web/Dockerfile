@@ -5,6 +5,7 @@
 #   --build-arg CORS_ORIGIN=https://myapp.example.com .
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
+LABEL org.opencontainers.image.source="https://github.com/atrakic/azure-full-stack-terraform"
 WORKDIR /usr/share/nginx/html
 
 ARG API_HOST=api:3000

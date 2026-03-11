@@ -154,6 +154,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o sysinfo main.go
 
 FROM scratch AS final
+LABEL org.opencontainers.image.source="https://github.com/atrakic/azure-full-stack-terraform"
 WORKDIR /app
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /src/sysinfo .
