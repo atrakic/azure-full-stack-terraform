@@ -13,3 +13,16 @@ services:
       - "8000:8080"
     depends_on:
       - api
+  
+  # Run once (on-demand)
+  # docker compose --profile tools run --rm mcp-client
+  mcp-client:
+    build:
+      context: ./src/cli/mcp
+    container_name: mcp-client
+    environment:
+      - BASE_URL=http://web:8080
+    depends_on:
+      - web
+    profiles:
+      - tools
