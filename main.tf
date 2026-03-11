@@ -69,7 +69,7 @@ module "api" {
   resource_group_id   = module.base.azurerm_resource_group_id
   resource_group_name = module.base.azurerm_resource_group_name
   image_context       = path.module
-  docker_image_name   = "${module.base.azurerm_container_registry_login_server}/api:latest"
+  docker_image_name   = "${module.base.azurerm_container_registry_login_server}/${local.name}-api:latest"
   dockerfile          = "${path.module}/api/Dockerfile"
   service_plan_id     = module.base.azurerm_service_plan_id
   acr_login_server    = module.base.azurerm_container_registry_login_server
@@ -94,7 +94,7 @@ module "web" {
   resource_group_id   = module.base.azurerm_resource_group_id
   resource_group_name = module.base.azurerm_resource_group_name
   image_context       = path.module
-  docker_image_name   = "${local.name}.azurecr.io/${local.name}-web:latest"
+  docker_image_name   = "${module.base.azurerm_container_registry_login_server}/${local.name}-web:latest"
   dockerfile          = "${path.module}/web/Dockerfile"
   service_plan_id     = module.base.azurerm_service_plan_id
   acr_login_server    = module.base.azurerm_container_registry_login_server
