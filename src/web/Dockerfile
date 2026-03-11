@@ -137,7 +137,7 @@ server {
         # which need SNI to present the correct certificate.
         proxy_ssl_server_name on;
 
-        proxy_set_header   Host \$host;
+        proxy_set_header   Host \$proxy_host;
         proxy_set_header   X-Real-IP \$remote_addr;
         proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto \$scheme;
@@ -153,7 +153,7 @@ fi)
     # Swagger UI fetches /docs/swagger.json as an absolute path from the browser
     location /docs/ {
         proxy_pass http://api_upstream;
-        proxy_set_header Host \$host;
+        proxy_set_header Host \$proxy_host;
     }
 }
 EOF
