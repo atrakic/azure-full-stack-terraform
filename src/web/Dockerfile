@@ -1,19 +1,25 @@
-# docker build --build-arg API_HOST=api:3000 --build-arg CORS_ORIGIN=https://myapp.example.com .
+# Example:
+# docker build \
+#   --build-arg API_HOST=api:3000 \
+#   --build-arg API_ENDPOINT=/api/v2 \
+#   --build-arg CORS_ORIGIN=https://myapp.example.com .
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 WORKDIR /usr/share/nginx/html
 
 ARG API_HOST=api:3000
+ARG API_ENDPOINT=/api/v1
 ARG REFRESH_INTERVAL=5000
 ARG CORS_ORIGIN
 
 ENV API_HOST=${API_HOST} \
     REFRESH_INTERVAL=${REFRESH_INTERVAL} \
-    CORS_ORIGIN=${CORS_ORIGIN}
+    CORS_ORIGIN=${CORS_ORIGIN} \
+    API_ENDPOINT=${API_ENDPOINT}
 
 USER root
 
-COPY <<robots.txt <<developer.txt /usr/share/nginx/html/
+COPY <<robots.txt <<developer.txt .
 User-agent: *
 Disallow:
 robots.txt
@@ -51,48 +57,66 @@ COPY <<EOF index.html
 EOF
 
 RUN <<EOF cat > sysinfo.js
-function formatValue(key, val) {
+function formatScalar(key, val) {
     if (key === 'timestamp') return new Date(val).toLocaleString();
-    if (val !== null && typeof val === 'object') {
-        return '<pre style="margin:0;font-size:0.8em">' + JSON.stringify(val, null, 2) + '</pre>';
-    }
-    if (typeof val === 'number') return val % 1 !== 0 ? val.toFixed(2) : val;
-    return val;
+    if (typeof val === 'number') return val % 1 !== 0 ? val.toFixed(2) : String(val);
+    return String(val);
 }
 function continuousFetch(url) {
     function doFetch() {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                const htmlContent = Object.entries(data)
-                    .map(([key, val], i) => {
-                        const parity = i % 2 === 0 ? 'odd' : 'even';
-                        const label = key.replace(/_/g, ' ');
-                        const value = formatValue(key, val);
-                        return '<div class="info-row ' + parity + ' d-flex justify-content-between px-3 py-2 rounded mb-1">'
-                            + '<span class="font-weight-bold text-dark text-capitalize">' + label + '</span>'
-                            + '<span class="info-value">' + value + '</span>'
-                            + '</div>';
-                    }).join('');
-                document.querySelector("#systemInfo").innerHTML = htmlContent;
+                const container = document.querySelector('#systemInfo');
+                container.textContent = '';
+                Object.entries(data).forEach(([key, val], i) => {
+                    const row = document.createElement('div');
+                    row.className = 'info-row ' + (i % 2 === 0 ? 'odd' : 'even') + ' d-flex justify-content-between px-3 py-2 rounded mb-1';
+
+                    const labelEl = document.createElement('span');
+                    labelEl.className = 'font-weight-bold text-dark text-capitalize';
+                    labelEl.textContent = key.replace(/_/g, ' ');
+
+                    const valueEl = document.createElement('span');
+                    valueEl.className = 'info-value';
+                    if (val !== null && typeof val === 'object') {
+                        const pre = document.createElement('pre');
+                        pre.style.cssText = 'margin:0;font-size:0.8em';
+                        pre.textContent = JSON.stringify(val, null, 2);
+                        valueEl.appendChild(pre);
+                    } else {
+                        valueEl.textContent = formatScalar(key, val);
+                    }
+
+                    row.appendChild(labelEl);
+                    row.appendChild(valueEl);
+                    container.appendChild(row);
+                });
             })
             .catch(error => {
-                const infoDiv = document.getElementById('systemInfo');
-                infoDiv.innerHTML = '<p style="color:red;">Error loading system information: ' + error.message + '</p>';
+                const container = document.getElementById('systemInfo');
+                const p = document.createElement('p');
+                p.style.color = 'red';
+                p.textContent = 'Error loading system information: ' + error.message;
+                container.textContent = '';
+                container.appendChild(p);
                 console.error('Fetch error:', error);
             });
     }
     doFetch();
     setInterval(doFetch, ${REFRESH_INTERVAL});
 }
-continuousFetch('/api/v1');
+continuousFetch('${API_ENDPOINT}');
 EOF
 
 # Configure Nginx to serve the static file
 RUN <<EOF cat > /etc/nginx/conf.d/default.conf
 upstream api_upstream {
-    server ${API_HOST:-api:3000};
+    # Disable passive health checking so nginx always attempts the upstream
+    # regardless of previous failures
+    server ${API_HOST} max_fails=0;
 }
+
 server {
     listen 8080;
     server_name _;
@@ -116,7 +140,13 @@ server {
         proxy_set_header   X-Real-IP \$remote_addr;
         proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto \$scheme;
-$([ -n "${CORS_ORIGIN}" ] && printf "        add_header 'Access-Control-Allow-Origin'  '${CORS_ORIGIN}' always;\n        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;\n        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;")
+
+        # Add CORS headers if CORS_ORIGIN is set
+$(if [ -n "${CORS_ORIGIN}" ]; then
+    printf "        add_header 'Access-Control-Allow-Origin'  '${CORS_ORIGIN}' always;\n"
+    printf "        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;\n"
+    printf "        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;\n"
+fi)
     }
 
     # Swagger UI fetches /docs/swagger.json as an absolute path from the browser

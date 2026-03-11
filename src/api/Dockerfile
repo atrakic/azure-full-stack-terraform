@@ -111,11 +111,16 @@ func main() {
         httpSwagger.DeepLinking(true),
     ))
 
-    srv := &http.Server{Addr: ":3000"}
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "3000"
+    }
+    addr := ":" + port
+    srv := &http.Server{Addr: addr}
 
     go func() {
-        log.Println("System Info Server starting on :3000")
-        log.Println("Swagger documentation available at: http://localhost:3000/swagger/")
+        log.Printf("System Info Server starting on %s", addr)
+        log.Printf("Swagger documentation available at: http://localhost%s/swagger/", addr)
         if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
             log.Fatalf("listen: %s\n", err)
         }
@@ -141,7 +146,8 @@ RUN go mod init atrakic/api && go mod tidy
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Generate swagger documentation
-RUN swag init --parseDependency --parseInternal --generalInfo main.go --output docs
+RUN swag init --parseDependency \
+    --parseInternal --generalInfo main.go --output docs
 
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
@@ -154,5 +160,6 @@ COPY --from=builder /src/sysinfo .
 COPY --from=builder /src/hello.txt .
 COPY --from=builder /src/docs ./docs
 USER nobody
+ENV PORT=3000
 EXPOSE 3000
 ENTRYPOINT ["./sysinfo"]
