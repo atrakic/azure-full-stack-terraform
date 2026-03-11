@@ -40,6 +40,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_cors_origin"></a> [cors\_origin](#input\_cors\_origin) | Allowed CORS origin for the web frontend (e.g. https://myapp.azurewebsites.net). Leave empty to emit no Access-Control-Allow-Origin header (most restrictive). | `string` | `""` | no |
 | <a name="input_location"></a> [location](#input\_location) | The Azure region where all resources will be deployed. | `string` | `"northeurope"` | no |
 
 ## Outputs
@@ -50,3 +51,38 @@ No resources.
 | <a name="output_location"></a> [location](#output\_location) | The location of the resource. |
 | <a name="output_web"></a> [web](#output\_web) | Web frontend hostname and deployment details. |
 <!-- END_TF_DOCS -->
+
+## CORS Configuration
+
+The web frontend proxies API requests through nginx (`/api` -> `API_URI`). Cross-Origin Resource Sharing (CORS) headers are baked into the nginx config at **Docker build time** via the `CORS_ORIGIN` build argument.
+
+### Behaviour
+
+| `CORS_ORIGIN` value               | CORS headers emitted                                                    | Effect                                                  |
+| --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| _(empty, default)_                | _(none)_                                                                | Most restrictive — browser blocks cross-origin requests |
+| `https://myapp.azurewebsites.net` | `Access-Control-Allow-Origin: https://myapp.azurewebsites.net` (+ Methods & Headers) | Only that exact origin is allowed          |
+
+### Setting a restricted origin via Terraform
+
+```hcl
+# terraform.tfvars
+cors_origin = "https://webXXXXX.azurewebsites.net"
+```
+
+Or pass it at plan/apply time:
+
+```bash
+terraform apply -var='cors_origin=https://webXXXXX.azurewebsites.net'
+```
+
+### Setting a restricted origin at Docker build time (local)
+
+```bash
+docker build \
+  --build-arg API_URI=https://api.example.com \
+  --build-arg CORS_ORIGIN=https://myapp.example.com \
+  src/web/
+```
+
+> **Note:** Wildcard (`*`) is intentionally not supported. To open access during local development use the Docker Compose setup, which runs both services on the same origin.

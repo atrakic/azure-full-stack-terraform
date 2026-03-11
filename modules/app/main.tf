@@ -33,6 +33,12 @@ variable "dockerfile" {
   default     = "Dockerfile"
 }
 
+variable "build_args" {
+  description = "A map of build-time variables passed to the Docker build (ARG values)."
+  type        = map(string)
+  default     = {}
+}
+
 variable "app_settings" {
   description = "A map of application settings for the web app."
   type        = map(string)
@@ -325,6 +331,7 @@ resource "docker_image" "this" {
     no_cache   = true
     dockerfile = var.dockerfile
     context    = var.image_context
+    build_arg  = var.build_args
   }
 }
 

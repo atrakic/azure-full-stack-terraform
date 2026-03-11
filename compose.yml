@@ -3,6 +3,8 @@ services:
     build:
       context: ./src/api
     container_name: api
+    environment:
+      - FOO=bar
   web:
     build:
       context: ./src/web
