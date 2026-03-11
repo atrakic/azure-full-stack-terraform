@@ -1,6 +1,8 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /src
 
+COPY *.go .
+
 COPY <<hello.txt .
 Hello, World!
 hello.txt
@@ -100,7 +102,11 @@ func main() {
         w.Write([]byte("OK"))
     })
 
+    // Load OpenAPI spec and register its operations as MCP tools
+    loadOpenAPITools("./docs/swagger.json")
+
     http.HandleFunc("/v1", systemInfoHandler)
+    http.HandleFunc("/mcp", mcpHandler)
 
     // Serve static files from docs directory
     http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("./docs"))))
@@ -151,7 +157,7 @@ RUN swag init --parseDependency \
 
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
-    -o sysinfo main.go
+    -o sysinfo .
 
 FROM scratch AS final
 LABEL org.opencontainers.image.source="https://github.com/atrakic/azure-full-stack-terraform"
