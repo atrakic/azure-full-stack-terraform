@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Render terraform docs for root module
-        uses: terraform-docs/gh-actions@v1.3.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .
           output-file: README.md
@@ -37,7 +37,7 @@ jobs:
           git-commit-message: "docs: auto-update terraform documentation"
 
       - name: Render terraform docs for base module
-        uses: terraform-docs/gh-actions@v1.3.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: modules/base
           output-file: README.md
@@ -46,7 +46,7 @@ jobs:
           git-commit-message: "docs: auto-update terraform documentation for base module"
 
       - name: Render terraform docs for app module
-        uses: terraform-docs/gh-actions@v1.3.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: modules/app
           output-file: README.md
