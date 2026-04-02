@@ -5,12 +5,14 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'Dockerfile*'
       - 'compose*.yml'
       - '.github/workflows/ci-docker-compose.yml'
   pull_request:
     paths:
       - 'src/**'
+      - 'tests/**'
       - 'Dockerfile*'
       - 'compose*.yml'
       - '.github/workflows/ci-docker-compose.yml'
